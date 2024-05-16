@@ -11,6 +11,8 @@ import androidx.room.Room;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -29,6 +31,9 @@ import com.example.contactsmanagerroom.adapter.ContactsAdapter;
 
 
 import java.util.ArrayList;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -57,6 +62,8 @@ public class MainActivity extends AppCompatActivity {
 
         // Display contacts
         recyclerView = findViewById(R.id.recycler_view_contacts);
+
+        //  database[
         //db = new DatabaseHelper(this);
         contactDataBase = Room.databaseBuilder(
                 getApplicationContext(),
@@ -65,8 +72,11 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         // Contacts List
-       //contactArrayList.addAll(db.getAllContacts());
-        contactArrayList.addAll(contactDataBase.getContactDAO().getContacts());
+        //contactArrayList.addAll(db.getAllContacts());
+        //contactArrayList.addAll(contactDataBase.getContactDAO().getContacts());
+
+        //  we use special method to display contacts
+        DisplayAllContactInBackgorung();
 
         contactsAdapter = new ContactsAdapter(this, contactArrayList,MainActivity.this);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
@@ -188,7 +198,26 @@ public class MainActivity extends AppCompatActivity {
             contactArrayList.add(0, contact);
             contactsAdapter.notifyDataSetChanged();
         }
+    }
 
+    private void DisplayAllContactInBackgorung(){
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        executorService.execute(new Runnable() {
+            @Override
+            public void run() {
+
+                //  background work
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        contactsAdapter.notifyDataSetChanged();
+                    }
+                });
+
+            }
+        });
     }
 
 
